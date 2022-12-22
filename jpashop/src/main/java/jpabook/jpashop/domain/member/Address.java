@@ -1,4 +1,4 @@
-package jpabook.jpashop.domain;
+package jpabook.jpashop.domain.member;
 
 import lombok.AccessLevel;
 import lombok.Getter;
