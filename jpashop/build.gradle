@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.4.1'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+}
+
+group = 'jpabook'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Spring devtools
+    implementation 'org.springframework.boot:spring-boot-devtools'
+    // Spring JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // JPA 쿼리 로그 출력 라이브러리 (운영 시스템에 적용하려면 성능 테스트 필수)
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.6'
+    // thymeleaf : Java View 템플릿 엔진
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    // H2-database
+    runtimeOnly 'com.h2database:h2'
+    // Spring Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
