@@ -1,0 +1,26 @@
+# test 폴더 경로에 resources가 있으면 테스트 실행 시 해당 폴더가 우선권을 가짐
+# 사실 Spring Boot에서 별다른 설정이 없고 파일만 있을 경우 기본 default로 인메모리 db를 사용하도록 설정해줌
+# 따라서 다 주석처리해도 정상적으로 동작함
+spring:
+#  datasource:
+#    driver-class-name: org.h2.Driver
+    # 외부 h2 db를 사용하지 않고 인메모리로 실행
+#    url: jdbc:h2:mem:test
+#    username: sa
+#    password:
+
+#  jpa:
+    # H2 database 서버를 직접 열어놓으면 사용하지 않아도 됨
+    # database-platform: org.hibernate.dialect.H2Dialect
+#    hibernate:
+#      ddl-auto: create     #  !!!!!! Spring Boot default 설정은 create-drop !!!!!!
+#    properties:
+#      hibernate:
+        # System.out을 통해 sql문 출력
+        # show_sql: true
+#        format_sql: true
+
+logging.level:
+  # 로거를 통해 sql문 출력
+  org.hibernate.SQL: debug
+  org.hibernate.type: trace #스프링 부트 2.x, hibernate5
