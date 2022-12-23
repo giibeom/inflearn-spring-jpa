@@ -51,9 +51,11 @@ class MemberServiceTest {
 
                 /*  @Transactional로 인해 테스트 종료 후 rollback이 진행되기 전에 flush
                     - flush를 하게 되면 실제 JPA 영속성 컨택스트에서 insert 쿼리가 실행됨 (로그에 보임)
+                    - flush : 쓰기 지연 저장소에 쌓아놨던 DDL(INSERT, UPDATE, DELETE) SQL들이 DB에 날라감
                     - commit은 아니므로 테스트 종료되면 rollback 됨
                 */
                 em.flush(); // 매 테스트 실행마다 해당 작업을 수행하도록 하면 편하게 로그 체킹 가능할 듯 함
+
                 assertThat(member).isEqualTo(memberRepository.findOne(saveId));
             }
         }
@@ -71,13 +73,13 @@ class MemberServiceTest {
 
                 member2 = new Member();
                 member2.setName("Alex");
+
+                memberService.join(member1);
             }
 
             @Test
             @DisplayName("예외를 던진다")
             void it_returns_exception() throws Exception {
-                memberService.join(member1);
-
                 assertThatThrownBy(
                         () -> memberService.join(member2),
                         "IllegalStateException이 발생해야 합니다."
