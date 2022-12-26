@@ -21,6 +21,14 @@ public class ItemService {
         itemRepository.save(item);
     }
 
+    @Transactional
+    public void updateItem(Long itemId, UpdateItemDto updateItemDto) {
+        Item findItem = itemRepository.findOne(itemId);
+        findItem.setName(updateItemDto.getName());
+        findItem.setPrice(updateItemDto.getPrice());
+        findItem.setStockQuantity(updateItemDto.getStockQuantity());
+    }
+
     public List<Item> findItems() {
         return itemRepository.findAll();
     }
