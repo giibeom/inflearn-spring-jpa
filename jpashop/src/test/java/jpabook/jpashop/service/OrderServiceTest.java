@@ -10,6 +10,8 @@ import jpabook.jpashop.exception.NotEnoughStockException;
 import jpabook.jpashop.repository.ItemRepository;
 import jpabook.jpashop.repository.MemberRepository;
 import jpabook.jpashop.repository.OrderRepository;
+import jpabook.jpashop.support.ItemFixture;
+import jpabook.jpashop.support.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -42,45 +44,62 @@ class OrderServiceTest {
     @Nested
     @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
     class 상품_주문 {
-        private Long memberId;
-        private Long itemId;
-
-        @BeforeEach
-        void setUp() {
-            Member member = 회원_ALEX.생성();
-            memberRepository.save(member);
-            memberId = member.getId();
-
-            Item item = 상품_JPA.책_생성();
-            itemRepository.save(item);
-            itemId = item.getId();
-        }
 
         @Nested
         @DisplayName("정상적인 주문이 주어지면")
         class Context_with_valid_order_item {
+            private final int 주문_수량 = 상품_JPA.재고_수량();
+            private Member member;
+            private Item item;
+
+            @BeforeEach
+            void setUp() {
+                member = createMember(회원_ALEX);
+                item = createBook(상품_JPA);
+            }
 
             @Test
             @DisplayName("상품 주문이 성공한다")
             void it_success_order() throws Exception {
-                Long orderId = orderService.order(memberId, itemId, 상품_JPA.재고_수량());
+                Long 주문_id = orderService.order(member.getId(), item.getId(), 주문_수량);
 
-                Order getOrder = orderRepository.findOne(orderId);
-                assertThat(getOrder.getStatus()).isEqualTo(OrderStatus.ORDER);
-                assertThat(getOrder.getOrderItems().size()).isEqualTo(상품_JPA.재고_수량());
+                Order getOrder = orderRepository.findOne(주문_id);
+
+                assertThat(getOrder.getStatus())
+                        .as("상품 주문시 상태는 ORDER 이어야 한다")
+                        .isEqualTo(OrderStatus.ORDER);
+                assertThat(getOrder.getOrderItems())
+                        .as("주문한 상품 종류 수가 정확해야 한다")
+                        .hasSize(1);
+                assertThat(getOrder.getTotalPrice())
+                        .as("주문 가격은 가격 x 수량 이어야 한다")
+                        .isEqualTo(상품_JPA.가격() * 주문_수량);
+                assertThat(item.getStockQuantity())
+                        .as("주문 수량만큼 재고가 줄어야 한다")
+                        .isEqualTo(상품_JPA.재고_수량() - 주문_수량);
             }
         }
 
         @Nested
         @DisplayName("재고 수량이 초과되면")
         class Context_with_not_enough_stock {
+            private final int 초과된_주문_수량 = 상품_JPA.재고_수량() + 1;
+            private Member member;
+            private Item item;
+
+            @BeforeEach
+            void setUp() {
+                member = createMember(회원_ALEX);
+                item = createBook(상품_JPA);
+            }
 
             @Test
             @DisplayName("NotEnoughStockException 예외를 던진다")
             void it_retruns_exception() throws Exception {
                 assertThatThrownBy(
-                        () -> orderService.order(memberId, itemId, 상품_JPA.재고_수량() + 1)
+                        () -> orderService.order(member.getId(), item.getId(), 초과된_주문_수량)
                 )
+                        .as("NotEnoughStockException 예외가 발생해야 한다")
                         .isInstanceOf(NotEnoughStockException.class);
             }
         }
@@ -93,58 +112,49 @@ class OrderServiceTest {
         @Nested
         @DisplayName("찾을 수 있는 id가 주어지면")
         class Context_with_valid_id {
-            private Long memberId;
-            private Long itemId;
-            private Long orderId;
             private final int orderCount = 10;
+            private Item item;
+            private Long orderId;
 
             @BeforeEach
             void setUp() {
-                Member member = 회원_ALEX.생성();
-                memberRepository.save(member);
-                memberId = member.getId();
-
-                Item item = 상품_JPA.책_생성();
-                itemRepository.save(item);
-                itemId = item.getId();
-
-                orderId = orderService.order(memberId, itemId, orderCount);
+                Member member = createMember(회원_ALEX);
+                item = createBook(상품_JPA);
+                orderId = orderService.order(member.getId(), item.getId(), orderCount);
             }
-    
+
+
             @Test
             @DisplayName("주문이 취소되고 상품 수량이 올라간다")
             void it_cancel_order() throws Exception {
-                int beforeStockQuantity = itemRepository.findOne(itemId).getStockQuantity();
+                int beforeStockQuantity = itemRepository.findOne(item.getId())
+                        .getStockQuantity();
 
                 orderService.cancleOrder(orderId);
 
-                int afterStockQuantity = itemRepository.findOne(itemId).getStockQuantity();
+                int afterStockQuantity = itemRepository.findOne(item.getId())
+                        .getStockQuantity();
 
-                assertThat(afterStockQuantity - beforeStockQuantity).isEqualTo(orderCount);
-                assertThat(orderRepository.findOne(orderId).getStatus()).isEqualTo(OrderStatus.CANCEL);
+                assertThat(afterStockQuantity)
+                        .as("주문이 취소된 상품은 그만큼 재고가 증가해야 한다")
+                        .isEqualTo(beforeStockQuantity + orderCount);
+                assertThat(orderRepository.findOne(orderId).getStatus())
+                        .as("주문 취소 시 상태는 CANCLE 이어야 한다")
+                        .isEqualTo(OrderStatus.CANCEL);
             }
         }
 
         @Nested
         @DisplayName("배송 완료된 주문 id가 주어지면")
         class Context_with_complete_delivery {
-            private Long memberId;
-            private Long itemId;
-            private Long orderId;
             private final int orderCount = 10;
+            private Long orderId;
 
             @BeforeEach
             void setUp() {
-                Member member = 회원_ALEX.생성();
-                memberRepository.save(member);
-                memberId = member.getId();
-
-                Item item = 상품_JPA.책_생성();
-                itemRepository.save(item);
-                itemId = item.getId();
-
-                orderId = orderService.order(memberId, itemId, orderCount);
-
+                Member member = createMember(회원_ALEX);
+                Item item = createBook(상품_JPA);
+                orderId = orderService.order(member.getId(), item.getId(), orderCount);
                 Order order = orderRepository.findOne(orderId);
                 order.getDelivery().setStatus(DeliveryStatus.COMP);
             }
@@ -155,8 +165,21 @@ class OrderServiceTest {
                 assertThatThrownBy(
                         () -> orderService.cancleOrder(orderId)
                 )
+                        .as("IllegalStateException이 발생해야 한다")
                         .isInstanceOf(IllegalStateException.class);
             }
         }
+    }
+
+    private Member createMember(MemberFixture memberFixture) {
+        Member member = memberFixture.생성();
+        memberRepository.save(member);
+        return member;
+    }
+
+    private Book createBook(ItemFixture itemFixture) {
+        Book book = itemFixture.책_생성();
+        itemRepository.save(book);
+        return book;
     }
 }

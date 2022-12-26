@@ -1,7 +1,6 @@
 package jpabook.jpashop.support;
 
 import jpabook.jpashop.domain.item.Book;
-import jpabook.jpashop.domain.item.Item;
 
 public enum ItemFixture {
     상품_JPA("JPA 프로그래밍", 30000, 10000),
@@ -17,12 +16,12 @@ public enum ItemFixture {
         this.stockQuantity = stockQuantity;
     }
 
-    public Item 책_생성() {
-        Item item = new Book();
-        item.setName(this.name);
-        item.setPrice(this.price);
-        item.setStockQuantity(this.stockQuantity);
-        return item;
+    public Book 책_생성() {
+        Book book = new Book();
+        book.setName(this.name);
+        book.setPrice(this.price);
+        book.setStockQuantity(this.stockQuantity);
+        return book;
     }
 
     public String 이름() {

@@ -81,9 +81,9 @@ class MemberServiceTest {
             @DisplayName("예외를 던진다")
             void it_returns_exception() throws Exception {
                 assertThatThrownBy(
-                        () -> memberService.join(member2),
-                        "IllegalStateException이 발생해야 합니다."
+                        () -> memberService.join(member2)
                 )
+                        .as("IllegalStateException이 발생해야 한다")
                         .isInstanceOf(IllegalStateException.class);
             }
         }
