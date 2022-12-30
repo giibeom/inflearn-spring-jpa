@@ -8,7 +8,7 @@ import javax.persistence.Id;
 
 @Entity
 @Getter @Setter
-public class Member {
+public class MemberTest {
 
     @Id
     private Long id;

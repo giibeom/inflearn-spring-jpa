@@ -1,10 +1,13 @@
-package hellojpa;
+package jpabook.jpashop;
+
+
+import jpabook.jpashop.domain.Member;
+import jpabook.jpashop.domain.Order;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import java.util.List;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -19,30 +22,10 @@ public class JpaMain {
         tx.begin();
 
         try {
-            /*
-            Member member = new Member();
-            member.setId(1L);
-            member.setName("ALEX");
-
-            em.persist(member);
-            */
-            /*
-            Member member = em.find(Member.class, 1L);
-            member.setName("ALEX UPDATE");
-            */
-            /*
-            em.remove(member);
-            */
-            List<MemberTest> findMember = em.createQuery("select m from MemberTest m", MemberTest.class)
-                    // 페이징 방언 (Dialect)
-                    .setFirstResult(5)
-                    .setMaxResults(8)
-                    .getResultList();
-
-            for (MemberTest member : findMember) {
-                System.out.println("memberId : " + member.getId());
-                System.out.println("memberName : " + member.getName());
-            }
+            Order order = em.find(Order.class, 1L);
+            // Order 객체에서 Member 객체 바로 참조 불가
+            Long memberId = order.getMemberId();
+            Member member = em.find(Member.class, memberId);
 
             tx.commit();
         } catch (Exception e) {
