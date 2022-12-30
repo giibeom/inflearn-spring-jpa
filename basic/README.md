@@ -108,4 +108,212 @@
 #### 모든 관계형 데이터베이스는 내부적으로 트랜잭션에 감싸져서 데이터 변경이 일어난다
   - RDB는 내부적으로 데이터 변경은 트랜잭션 안에서 일어나도록 설계되어 있다 
 
+<br>
+
+---
+
+
+### 영속성 컨텍스트
+
+- EntityManagerFactory : 애플리케이션 전체에서 최초 한번 생성 후 공유해서 사용
+- EntityManager : 각 사용자 요청마다 생성
+  - 엔티티 매니저를 통해 영속성 컨텍스트에 접근한다
+  - DB 연결이 꼭 필요한 시점에 커넥션을 획득함 (ex. 트랜잭션 시작)
+  - 쉽게 설명하면 영속성 컨텍스트 내부에 Map이 하나 있고, 키는 `@Id`로 매핑한 식별자, 값은 엔티티의 인스턴스가 있다고 보면 된다
+
+  <img src="images/4.png" width="80%">
+
+<br>
+
+### 영속성 컨텍스트 동작 구조
+
+1. 사용자 요청이 들어 왔다!
+2. 엔티티 매니저 생성
+3. 트랜잭션 생성
+4. 모든 SQL 쓰기 지연 저장소에 저장 + 영속 엔티티 1차 캐시
+5. 트랜잭션 종료 → `commit()`
+   1. flush → SQL 쓰기 지연 저장소에 있던 모든 쿼리가 DB에 날라감
+   2. commit → DB가 커밋됨
+
+<br>
+
+### 엔티티의 생명주기
+
+- 비영속 : 영속성 컨텍스트와 전혀 관계 없는 새로운 상태
+- 영속 : 영속성 컨텍스트가 관리하고 있는 상태
+- 준영속 : 영속성 컨텍스트에 저장되었다가 분리된 상태
+- 삭제
+
+<img src="images/5.png" width="80%">
+
+<br><br>
+
+### 영속성 컨텍스트의 장점
+
+#### 1. 버퍼링 기능을 사용할 수 있다 (쓰기 지연)
+
+- 최적화 할 수 있는 여지가 있음 (DB는 실제로 commit 시점까지만 SQL을 날려주면 됨)
+- 아래 설정 값 만큼의 배치 쿼리를 모아서 한방에 SQL을 날릴 수 있음
+  - `<property name="hibernate.jdbc.batch_size" value="10"/>`
+  - 설정 값이 채워지면 쿼리 실행
+  - [https://techblog.woowahan.com/2695/](https://techblog.woowahan.com/2695/)
+- `transaction.commit()`이 발생될 때 모아놓았던 SQL을 한방에 실행
+
+  <img src="images/6.png" width="80%">  
+
+<br>
+
+#### 2. 변경 감지 (Dirty Checking)
+
+- 영속성 컨택스트에 flush가 일어남
+- 1차 캐시에서 각 엔티티 객체 별로 Entity와 스냅샷을 비교하여 변경된 부분을 분석
+- 변경된 컬럼 UPDATE 쿼리 발생
+
+  <img src="images/7.png" width="80%">
+
+<br>
+
+#### 3. 지연 로딩
+
+- 지연 로딩은 실제 객체 대신 프록시 객체를 로딩해두고 해당 객체를 실제 사용할 때 영속성 컨텍스트를 통해 데이터를 불러오는 방법
+- find()로 가져온 엔티티 객체 내 다른 엔티디를 사용(참조)하기 직전에 DB에서 가져오는 방법
+  - Member 객체에는 Team이라는 엔티티도 포함되어 있는 상황
+  - findMember()를 통해 가져온 Member는 **회원 테이블**만 검색
+  - `member.getTeam()`으로 Team 엔티티를 사용(참조)하는 “시점”에 팀 테이블도 검색해서 가져오는 방법
+
+<br>
+
+#### 나머지 장점
+
+- 1차 캐시
+- 동일성(identity) 보장
+  - 1차 캐시로 DB 트랜잭션 격리수준 중 “반복 가능한 읽기”(REPEATABLE READ)를 애플리케이션 차원에서 제공 가능
+
+<br>
+
+### 플러시
+
+#### 플러시는 영속성 컨텍스트를 비우는 것이 아니다
+
+> 영속성 컨텍스트를 비우는 기능은 `em.clear()`
+
+- 플러시는 영속성 컨텍스트의 변경 내용들을 DB에 동기화 시키는 작업이다
+  - 엔티티 객체 변경 감지
+  - 쓰기 지연  SQL 저장소에 쌓여있는 쿼리들
+- 일반적인 상황(`clear` 사용 x)에서는 영속성 컨텍스트가 비워지는 것이 아닌, 트랜잭션이 종료되어 `entityManager.close()`가 되면서 사라지는 것이다
+- 플러시 매커니즘이 존재 가능한 이유 : 트랜잭션 (커밋 직전에만 동기화 하면 됨)
+  - JPA에서는 대부분의 동시성, 데이터 정합성 등의 기능들은  DB의 트랜잭션을 위임하여 사용한다
+
+<br>
+
+### 플러시 발생 상황
+
+- `em.flush()` 직접 호출
+- 트랜잭션 커밋 - 플러시 자동 호출
+- JPQL 쿼리 실행 - 플러시 자동 호출 설정이 default
+  - JPQL 실행 직전에 flush가 동작하도록 내부적으로 구현되어 있다 (default)
+  - 쿼리를 그대로 DB에 던지는 거기 때문에 이전 로직에 대한 쿼리들을 모두 flush 하는게 정합성 측면에서 안전하기 때문
+  - 플러시 모드 옵션
+    - `FlushModeType.AUTO` : 커밋 + 쿼리를 실행할 때 플러시 (default)
+    - `FlushModeType.COMMIT` : 커밋할 때만 플러시
+
+<br>
+
+### 데이터베이스 스키마 자동 생성
+
+- 애플리케이션 실행 시점에 JPA는 엔티티의 매핑 정보를 가지고 DDL을 생성해주는 기능을 지원
+- 개발 환경에서만 사용해야되고, 운영에서는 설정을 꺼야됨 (`ddl-auto: none`)
+- DDL 자동 생성 기능 옵션
+  - `create` : 기존 테이블 삭제 후 다시 생성 (DROP + CREATE)
+  - `create-drop` : create와 같으나 종료 시점에서 DROP (DROP + CREATE + DROP)
+  - `update` : 스키마에 추가된 컬럼 부분만(삭제 컬럼은 제외) 반영 (운영 DB에서는 사용 금지)
+
+---
+
+**운영 환경뿐만 아니라 테스트 환경에서도 웬만하면 아래 두개만 사용해야됨**
+
+  - `validate` : 엔티티와 테이블이 정상 매핑되었는지만 확인
+  - `none` : 사용 안함
+
+<br>
+
+### 엔티티 매핑
+
+#### `@Entity`
+
+- 기본 생성자 필수 (protected 이상)
+- final 클래스, enum, interface, inner 클래스 사용 불가
+- 데이터를 DB에 저장할 필드에 final 사용은 당연히 안된다
+
+#### `@Table`
+
+- 엔티티 객체명과 테이블명이 다른 경우(ex. 회사 테이블 컨벤션), name을 통해 매핑할 테이블 이름을 설정
+  - `@Table(name = “tb_user”)`
+
+#### `@Column`
+
+- 데이터베이스 컬럼명과 엔티티객채의 컬럼명이 다를 경우 name 속성으로 맞춰주면 됨
+  - `@Cloumn(name = "name) private String username;`
+
+#### 나머지 어노테이션
+
+- `@Enumerated(EnumType.STRING)` : DB에는 enum타입이 없으므로, enum 객체 타입을 매핑
+  - `EnumType.ORDINAL`이 default인데 enum **순서를 저장**하므로 사용하지 말자
+  - `**EnumType.STRING`을 꼭!!!! 설정하여 enum의 이름을 DB에 저장하자**
+- `@Temporal` : 날짜. 시간 타입 매핑  (`TemporalType` : 날짜, 시간, 날짜 + 시간)
+  - `LocalDate`, `LocalDateTime`을 사용하면 어노테이션 생략 가능
+- `@Lob` : 방대한 텍스트 타입 매핑 (ex. TEXT 타입)
+- `@Transient` : DB랑 관련 없이 인메모리에서만 사용하는 필드  매핑
+
+<br>
+
+### 기본 키 매핑
+
+#### `@Id`
+
+- 애플리케이션 단에서 직접 ID를 할당하는 방식
+- 기본 키를 비즈니스로 끌고 오는 것은 권장하지 않는다
+  - Auto_Increament(MySQL) or Sequence(Oracle) 같이 DB가 지원하는 최적화 된 기본 키 전략을 위임해서 사용하는 것이 좋음
+
+<br>
+
+#### `@GeneratedValue`
+
+- IDENTITY : 데이터베이스에 기본 키 전략을 위임하는 기능 (MySQL)
+
+  > *`@GeneratedValue*(strategy = GenerationType.IDENTITY)`
+  >
+  - Id를 null로 세팅하고 insert를 하면 DB가 id 값을 생성하여 반환해줌
+  - 해당 전략은 id 생성을 DB에 위임하므로, 실제 insert를 하기 전까진 id를 모름
+  - 따라서 해당 전략은 예외적으로 persist() 되는 시점에 insert 쿼리가 DB로 바로 전달
+    - 본래는 `persist()` 이후 트랜잭션 commit 시점에 flush가 일어나면서 쿼리 전달
+
+<br>
+
+- SEQUENCE : 유일한 값을 순서대로 생성하는 특별한 DB의 오브젝트 (ORACLE, H2)
+
+  > `@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "제네레이터 명")`
+
+    ```java
+    @Entity
+    @SequenceGenerator(name = “MEMBER_SEQ_GENERATOR", sequenceName = “MEMBER_SEQ", //매핑할 데이터베이스 시퀀스 이름
+    initialValue = 1, allocationSize = 1)
+    public class Member {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MEMBER_SEQ_GENERATOR")
+    private Long id;
+    ```
+
+  - IDENTITY 전략과 다르게, insert를 하지 않는 대신 sequence 테이블과의 통신을 함
+  - 따라서 성능 관련 문제를 보완하기 위해 allocation으로 일정 시퀀스 수량을 미리 메모리에 땡겨오는 등의 기능 제공
+    - DB에는 미리 sequence를 수량만큼 올려놓고, 메모리에서는 하나씩 사용
+    - 미리 올려놓고 사용하기 때문에 동시성 이슈 없이 다양한 문제 해결 가능
+
+<br>
+
+- TABLE : 키 생성 전용 테이블을 하나 만들어서 DB 시퀀스를 흉내내는 전략
+
+<br>
+
 ---
