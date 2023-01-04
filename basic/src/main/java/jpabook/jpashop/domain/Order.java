@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +45,10 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+
+    @OneToOne
+    @JoinColumn(name = "DELIVERY_ID")
+    private Delivery delivery;
 
     // === 연관관계 편의 메서드 ===
     public void addOrderItem(OrderItem orderItem) {

@@ -7,7 +7,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,4 +36,20 @@ public class Member {
     */
     @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>(); // 컬렉션은 바로 초기화 해주는 것이 하이버네이트 관례이다
+
+    @OneToOne
+    @JoinColumn(name = "LOCKER_ID")
+    private Locker locker;
+
+    /*
+        중간 테이블은 매핑 정보만 넣을 수 있고 추가정보를 넣을 수 없음
+        따라서 실무에서 @ManyToMany는 사용 안함
+    */
+    /*
+    @ManyToMany
+    @JoinTable(name = "MEMBER_PRODUCT")
+    private List<Product> products = new ArrayList<>();
+    */
+    @OneToMany(mappedBy = "member")
+    private List<MemberProduct> memberProducts = new ArrayList<>();
 }
