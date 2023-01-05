@@ -20,9 +20,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "ORDERS")
-@Getter
-@Setter
-public class Order {
+@Getter @Setter
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue

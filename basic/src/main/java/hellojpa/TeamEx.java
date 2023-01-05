@@ -13,9 +13,10 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
-public class TeamEx {
+public class TeamEx extends BaseEntityEx {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     @Column(name = "TEAM_EX_ID")
     private Long id;
 

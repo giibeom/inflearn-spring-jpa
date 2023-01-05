@@ -13,7 +13,7 @@ import javax.persistence.ManyToOne;
 @Entity
 @Getter
 @Setter
-public class MemberEx {
+public class MemberEx extends BaseEntityEx {
 
     @Id
     @GeneratedValue

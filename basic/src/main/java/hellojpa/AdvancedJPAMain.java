@@ -1,19 +1,15 @@
-package jpabook.jpashop;
-
-
-import jpabook.jpashop.domain.Book;
-import jpabook.jpashop.domain.Order;
-import jpabook.jpashop.domain.OrderItem;
+package hellojpa;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.time.LocalDateTime;
 
-public class JpaMain {
+public class AdvancedJPAMain {
     public static void main(String[] args) {
         // 웹서버가 올라오는 시점에 DB당 한개씩 생성하여 애플리케이션 전체에서 공유
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("test");
 
         // 고객의 요청이 올 때 마다 쓰고 버림 (쓰레드 간에 공유하면 절대 안됨!)
         EntityManager em = emf.createEntityManager();
@@ -23,18 +19,13 @@ public class JpaMain {
         tx.begin();
 
         try {
-//            Order order = em.find(Order.class, 1L);
-//            // Order 객체에서 Member 객체 바로 참조 불가
-//            Long memberId = order.getMemberId();
-//            Member member = em.find(Member.class, memberId);
-//            Order order = new Order();
-//            order.addOrderItem(new OrderItem());
 
-            Book book = new Book();
-            book.setName("JPA");
-            book.setAuthor("김영한");
+            MemberEx member = new MemberEx();
+            member.setName("ALEX");
+            member.setCreatedBy("kim");
+            member.setCreatedDate(LocalDateTime.now());
 
-            em.persist(book);
+            em.persist(member);
 
             tx.commit();
         } catch (Exception e) {
