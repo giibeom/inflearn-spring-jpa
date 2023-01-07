@@ -1,4 +1,4 @@
-package hellojpa;
+package hellojpa.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,4 +30,13 @@ public class MemberEx extends BaseEntityEx {
     @ManyToOne
     @JoinColumn(name = "TEAM_EX_ID")
     private TeamEx teamEx;
+
+    @Override
+    public String toString() {
+        return "MemberEx{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", teamEx=" + teamEx +
+                '}';
+    }
 }

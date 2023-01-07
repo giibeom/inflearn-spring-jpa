@@ -11,6 +11,8 @@ import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.persistence.FetchType.LAZY;
+
 @Entity
 @Getter @Setter
 public class Product {
@@ -25,6 +27,6 @@ public class Product {
     private List<Product> products = new ArrayList<>();
     */
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", fetch = LAZY)
     private List<MemberProduct> memberProducts = new ArrayList<>();
 }

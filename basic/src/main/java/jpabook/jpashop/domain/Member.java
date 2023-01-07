@@ -13,13 +13,13 @@ import javax.persistence.OneToOne;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.persistence.FetchType.LAZY;
+
 @Entity
-@Getter
-@Setter
+@Getter @Setter
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue
+    @Id @GeneratedValue
     @Column(name = "MEMBER_ID")
     private Long id;
     private String name;
@@ -34,10 +34,10 @@ public class Member extends BaseEntity {
 
         주문이 필요할 땐 웬만하면 Order 객체로 시작하자 (Member는 order를 알 필요는 상황 상 거의 없다)
     */
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", fetch = LAZY)
     private List<Order> orders = new ArrayList<>(); // 컬렉션은 바로 초기화 해주는 것이 하이버네이트 관례이다
 
-    @OneToOne
+    @OneToOne(fetch = LAZY)
     @JoinColumn(name = "LOCKER_ID")
     private Locker locker;
 
@@ -50,6 +50,6 @@ public class Member extends BaseEntity {
     @JoinTable(name = "MEMBER_PRODUCT")
     private List<Product> products = new ArrayList<>();
     */
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", fetch = LAZY)
     private List<MemberProduct> memberProducts = new ArrayList<>();
 }
