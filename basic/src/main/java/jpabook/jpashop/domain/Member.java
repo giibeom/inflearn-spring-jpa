@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -23,9 +24,13 @@ public class Member extends BaseEntity {
     @Column(name = "MEMBER_ID")
     private Long id;
     private String name;
-    private String city;
+
+    @Embedded
+    private Address address;
+
+    /*private String city;
     private String street;
-    private String zipcode;
+    private String zipcode;*/
 
     /*
         Member는 그냥 회원에 대한 정보만 가지고 있는게 깔끔한 설계이긴하다.

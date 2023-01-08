@@ -1,6 +1,7 @@
 package jpabook.jpashop.domain;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -15,9 +16,11 @@ public class Delivery extends BaseEntity {
     @Column(name = "DELIVERY_ID")
     private Long id;
 
-    private String city;
+    @Embedded
+    private Address address;
+    /*private String city;
     private String street;
-    private String zipcode;
+    private String zipcode;*/
 
     private DeliveryStatus status;
 
