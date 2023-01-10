@@ -1,9 +1,11 @@
 package hellojpa.domain;
 
+import jpabook.jpashop.domain.Address;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -30,6 +32,9 @@ public class MemberEx extends BaseEntityEx {
     @ManyToOne
     @JoinColumn(name = "TEAM_EX_ID")
     private TeamEx teamEx;
+
+    @Embedded
+    private Address address;
 
     @Override
     public String toString() {
