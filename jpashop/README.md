@@ -1,5 +1,11 @@
 # 스프링 부트와 JPA 활용 1
 
+<details>
+<summary>JPA 활용 1 정리 내용</summary>
+<div markdown="1">
+
+
+
 #### `springframework.ui.Model` : Controller에서 View로 데이터를 넘길 때 사용되는 객체 (바구니 역할)
 
 <br>
@@ -23,8 +29,8 @@ public class HelloController {
 
 - Spring Boot에서 thymeleaf viewName을 매핑 해줌
 - 기본 default 파일 prefix, subfix
-    - `prefix` : templates/
-    - `subfix` : .html
+  - `prefix` : templates/
+  - `subfix` : .html
 
 <br>
 
@@ -52,7 +58,7 @@ public class HelloController {
 
 - 일대다 관계 —— 중간 테이블 —— 다대일 관계
 - `@ManyToMany`는 실무에서 사용하지 말자
-    - 중간 테이블에 필요한 컬럼들을 유연하게 추가하지 못한다
+  - 중간 테이블에 필요한 컬럼들을 유연하게 추가하지 못한다
 
 1:1 관계인 `@OneToOne`에서는 FK를 어디다 두든 각자 장단점이 있어 상관이 없지만, Access가 많이 일어나는 쪽에 두는 것이 편함
 
@@ -66,9 +72,9 @@ public class HelloController {
 
 ### `xxToMany` 처럼 여러개를 찌르는 친구는 default가 `FetchType.LAZY`로 설정되어 있음
 - 하지만 `xxToOne` 같이 **하나를 찌르는 친구**는 default가 `FetchType.EAGER` !!!
-    - 마지막이 One인 애는 그냥 LAZY로 다 설정해주자
-    - *`@ManyToOne*(fetch = FetchType.LAZY)`
-    - *`@OneToOne*(fetch = FetchType.LAZY)`
+  - 마지막이 One인 애는 그냥 LAZY로 다 설정해주자
+  - *`@ManyToOne*(fetch = FetchType.LAZY)`
+  - *`@OneToOne*(fetch = FetchType.LAZY)`
 
 <br>
 
@@ -80,7 +86,7 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
 
 - JPQL은 EAGER인지 모르고 그냥 select * from order을 번역해 가져온 데이터를 객체에 넣는다
 - 이후 어노테이션에 EAGER로 설정되어있다면 뒤늦게 아뿔싸하고 가져온 데이터이 관한 모든 연관 데이터를 가져온다
-    - 100개를 가져왔다면 해당 데이터의 연관데이터를 다 가져와야되므로 100방이 더 나간다
+  - 100개를 가져왔다면 해당 데이터의 연관데이터를 다 가져와야되므로 100방이 더 나간다
 
 <br> 
 
@@ -97,10 +103,10 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
 #### 엔티티 멤버 중 컬렉션(ex `List<>`) 는 필드에서 바로 초기화 하는 것이 best practice이다
 
 - 하이버네이트에 영속(`persist()`)화가 진행되면 자체 프록시로 한번 감싸기 때문에, 웬만하면 변경(재할당)되지 않는 것이 바람직하다
-    - 엔티티의 **변경상태를 감지**해야하기 때문
-    - 따라서 컬렉션을 변경한다면 JPA의 기본 메커니즘대로 동작을 안할 가능성이 있음
+  - 엔티티의 **변경상태를 감지**해야하기 때문
+  - 따라서 컬렉션을 변경한다면 JPA의 기본 메커니즘대로 동작을 안할 가능성이 있음
 - 컬렉션을 필드에서 초기화 한 것을 당연히 밖에서 재할당을 해서도 안된다
-    - `final`을 붙이면 좋을 듯 하다
+  - `final`을 붙이면 좋을 듯 하다
 
 <br>
 
@@ -113,8 +119,8 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
 ### casecade - 전파
 
 - 일반적으로 엔티티 안에 다른 엔티티 객체를 포함하고 있을 때, 포함하고 있는 엔티티에 관련 데이터를 저장 후 본 엔티티를 저장한다
-    - orderItems의 데이터들을 각각 `persist(OrderItem)`를 진행한 후에
-    - `persist(order)`를 진행한다
+  - orderItems의 데이터들을 각각 `persist(OrderItem)`를 진행한 후에
+  - `persist(order)`를 진행한다
 
     ```java
     @Entity
@@ -139,8 +145,8 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
     ```
 
 - `cascade = CascadeType.All`을 설정해주면 본 엔티티만 persist()를 진행해도 각각의 포함된 엔티티들에게 전파가 되는 효과
-    - `persist(order)` 한번만 동작
-    - DELETE 또한 같이 다 지워버림
+  - `persist(order)` 한번만 동작
+  - DELETE 또한 같이 다 지워버림
 
 
 <br>
@@ -149,7 +155,7 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
 
 - persist 해야하는 라이프 사이클이 완전 동일 할 때
 - 엔티티를 참조하는 주인이 오로지 하나(private owner)인 경우에만 사용해야 한다
-    - 현재 예제 코드에서 `Delivery`랑 `OrderItem`은 `Order` 에서만 참조해서 사용하고, Order가 persist 될 때 같이 persist 되야 하므로 cascade 조건이 맞아 `cascade = ALL` 설정 사용
+  - 현재 예제 코드에서 `Delivery`랑 `OrderItem`은 `Order` 에서만 참조해서 사용하고, Order가 persist 될 때 같이 persist 되야 하므로 cascade 조건이 맞아 `cascade = ALL` 설정 사용
 
     ```java
     @Entity
@@ -180,7 +186,7 @@ EAGER를 하이버네이트에서 추천하는 이유는 쿼리를 가져올 때
 
 - 엔티티 안에 연관된 다른 엔티티에 좀 더 쉽게 멤버에 데이터를 세팅하기 위한 메서드
 - DB 저장과는 별도로 객체에 값이 채워져야 사용성에 좋기 때문에 사용
-    - DB 저장은 연관 관계 주인이 바뀌면 알아서 바뀔거니 논외
+  - DB 저장은 연관 관계 주인이 바뀌면 알아서 바뀔거니 논외
 - 연관 관계 편의 메서드는 주로 **핵심적으로 컨트롤 하는 도메인**이 갖고 있는 것이 사용성에 좋음
 
 ```java
@@ -240,12 +246,12 @@ public static void main(String[] args) {
 #### test 폴더 경로에 resources 폴더가 있을 경우 테스트 실행 시 해당 패키지가 우선권을 가진다
 
 > application.yml을 테스트용 환경과 실제 부트 환경을 격리시킬 수 있다
- 
+
 
 - h2 database를 인메모리 환경으로 세팅
-    - `url: jdbc:h2:mem:test`
+  - `url: jdbc:h2:mem:test`
 - h2 database를 실제 외부 db 환경으로 세팅
-    - `url: jdbc:h2:tcp://localhost/~/data/inflearn/jpashop`
+  - `url: jdbc:h2:tcp://localhost/~/data/inflearn/jpashop`
 - 따라서 부트 환경과 테스트 환경의 설정을 따로 가져가자
 
     <img src="images/1.png" width="40%">
@@ -301,17 +307,17 @@ public void updateItem(Long itemId, Book param) {
 ### 병합 (merge)
 
 - 준영속 엔티티 : 영속성 컨텍스트가 더는 관리하지 않는 엔티티
-    - 이미 DB에 한번 저장되어 식별자(고유 id)가 존재하는 객체
-        - 임의로 만든 객체(ex. `Book book = new Book()`)에도 기존 식별자를 갖고 있다면 준영속 엔티티로 볼 수 있음
-    - `@Transactional`이 없는 곳에서 엔티티를 조회한 객체
+  - 이미 DB에 한번 저장되어 식별자(고유 id)가 존재하는 객체
+    - 임의로 만든 객체(ex. `Book book = new Book()`)에도 기존 식별자를 갖고 있다면 준영속 엔티티로 볼 수 있음
+  - `@Transactional`이 없는 곳에서 엔티티를 조회한 객체
 
 > 병합을 실무에선 절대 사용하면 안된다!
 >
 - 병합 동작 방식
-    1. `merge()`를 통해서 영속성 엔티티를 1차 캐시에서 조회
-        - 1차 캐시에 없으면 DB에서 조회
-    2. 조회한 영속성 엔티티에 병합(merge)한 엔티티의 정보들을 모두 들이 붓는다(**덮어 씌우기**)
-    3. 들이부어서 DB에 적용한 영속 상태 엔티티를 반환한다
+  1. `merge()`를 통해서 영속성 엔티티를 1차 캐시에서 조회
+    - 1차 캐시에 없으면 DB에서 조회
+  2. 조회한 영속성 엔티티에 병합(merge)한 엔티티의 정보들을 모두 들이 붓는다(**덮어 씌우기**)
+  3. 들이부어서 DB에 적용한 영속 상태 엔티티를 반환한다
 
    <img src="images/2.png" width="90%">
 
@@ -333,14 +339,111 @@ public void updateItem(Long itemId, Book param) {
 #### `@RequestParam` 값은 select나 input같은 태그의 `name` attribute으로 올라오는 값이 바인딩 된다
 
 - `<select *name*="memberId" *id*="member" *class*="form-control">`
-    - *`@RequestParam*("memberId") Long memberId`
+  - *`@RequestParam*("memberId") Long memberId`
 - `<select *name*="itemId" *id*="item" *class*="form-control">`
-    - *`@RequestParam*("itemId") Long itemId`
+  - *`@RequestParam*("itemId") Long itemId`
 - `<input *type*="number" *name*="count" *class*="form-control" *id*="count">`
-    - *`@RequestParam*("count") *int* count`
+  - *`@RequestParam*("count") *int* count`
 
 <br>
 
 #### 임베디드 타입이 뭐지?
 
 - 포함 관계 객체를 뜻하는 듯 함
+
+
+</div>
+</details>
+
+
+
+
+
+
+
+
+<br>
+
+
+
+
+
+
+
+# 스프링 부트와 JPA 활용 2
+
+
+<details>
+<summary>JPA 활용 2 정리 내용</summary>
+<div markdown="1">
+
+`@ResponseBody` : 데이터를 반환할 때 XML이나 Json 형식으로 보낼 때 사용
+
+`@RequestBody` : 웹에서 요청올 때 json으로 온 requestBody를 매개변수 객체 타입으로 바인딩할 때 사용
+
+<br>
+
+### Entity → DTO 강의 Flow
+
+> 컨트롤러 요청 데이터 : 엔티티 그대로 사용 → RequestDTO 사용
+
+
+#### Controller에서 요청이나 응답 객체를 엔티티 객체 그대로 사용할 경우의 문제
+
+- 엔티티는 여러 곳에서 사용되는 객체이다 보니까 변수명 등이 바뀔 확률이 높음
+- 하지만 엔티티가 바뀌었다고 해서 API 명세 자체가 바뀐다면 큰 장애로 이어짐
+- API 스팩을 위한 DTO 객체를 만들어서 사용하여야 함
+- 또한 엔티티를 그대로 반환하는 것 또한 절대 하지 않는 것이 좋음
+  - 비밀번호 같은 중요 데이터 노출 문제
+  - 엔티티 내용이 변경되었을 때 사이드 이펙트가 어디까지 퍼질지 예측이 안되는 문제
+
+#### 따라서 Entity를 요청이나 응답에 그대로 사용하지 말고 API 스팩에 맞는 DTO를 사용하자
+
+<br>
+
+### Query랑 Command를 분리한다 (영한님 Style)
+
+- command : 엔티티의 값을 바꾸는 변경성 메서드, 값을 반환하지 않음
+- query : 데이터를 변경하지 않고 단순 조회하는 메서드
+
+```java
+// 값을 변경하는 command성 메서드인 update()
+@Transactional
+public void update(Long id, String name) {
+    Member member = memberRepository.findOne(id);
+    member.setName(name);
+}
+
+// 수정 후 값 반환: 이렇게도 많이들 사용하는데 이럴 경우 command와 query가 같이 있는 꼴
+@Transactional
+public Member update(Long id, String name) {
+    Member member = memberRepository.findOne(id);
+    member.setName(name);
+}
+```
+
+- command와 query를 철저히 분리할 경우 메서드 호출부
+
+```java
+// Query랑 Command를 분리한다
+@PutMapping("/api/v2/members/{id}")
+public UpdateMemberResponse updateMemberV2(@PathVariable Long id,
+                                           @RequestBody @Valid UpdateMemberRequest request) {
+    // 엔티티 수정
+    memberService.update(id, request.getName());
+    // 수정한 엔티티 조회
+    Member findMember = memberService.findOne(id);
+
+    return new UpdateMemberResponse(findMember.getId(), findMember.getName());
+}
+```
+
+<br>
+
+#### HTTP의 PATCH 메서드는 멱등으로 설계 할 수도, 아니게 설계 할 수도 있다.
+
+- POST는 무조건 멱등이 아니다
+- POST, PATCH를 제외한 나머지 메서드는 모두 멱등하다
+
+</div>
+</details>
